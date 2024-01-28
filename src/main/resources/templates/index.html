@@ -1,34 +1,24 @@
+<!-- Początek kodu HTML -->
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
+    <!-- Ustawienia strony -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title>Spring Boot WebSocket Chat Application</title>
+    <!-- Ładowanie stylów CSS -->
     <link rel="stylesheet" th:href="@{/css/index.css}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-
+    <!-- Ładowanie stylów Bootstrap z CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/index}">Start chatting!</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/register}">Register</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-</style>
+<!-- Początek sekcji z formularzem do wprowadzania nazwy użytkownika -->
 <div id="username-page">
     <div class="username-page-container">
         <h1 class="title">Type your username to enter the Chatroom</h1>
+        <!-- Formularz do wprowadzania nazwy użytkownika -->
         <form id="usernameForm" name="usernameForm">
             <div class="form-group">
-                <input type="text" id="name" placeholder="Username" autocomplete="off" class="form-control" />
+                <input type="text" id="name" placeholder="Username" autocomplete="off" class="form-control"/>
             </div>
             <div class="form-group">
                 <button type="submit" class="accent username-submit">Start Chatting</button>
@@ -37,6 +27,7 @@
     </div>
 </div>
 
+<!-- Początek sekcji z widokiem czatu -->
 <div id="chat-page" class="hidden">
     <div class="chat-container">
         <div class="chat-header">
@@ -45,12 +36,17 @@
         <div class="connecting">
             Connecting...
         </div>
+        <!-- Lista wyświetlająca wiadomości czatu -->
         <ul id="messageArea">
         </ul>
+        <!-- Formularz do wysyłania wiadomości -->
         <form id="messageForm" name="messageForm">
             <div class="form-group">
                 <div class="input-group clearfix">
-                    <input type="text" id="message" placeholder="Type a message..." autocomplete="off" class="form-control"/>
+                    <input type="text" id="message" placeholder="Type a message..." autocomplete="off"
+                           class="form-control"/>
+                    <input type="file" id="fileInput" accept="image/*"/>
+
                     <button type="submit" class="primary">Send</button>
                     <button id="leaveButton" class="accent" onclick="leaveChat()">Leave</button>
                 </div>
@@ -58,9 +54,10 @@
         </form>
     </div>
 </div>
+
+<!-- Skrypty JavaScript -->
 <script>
-
-
+    // Elementy interfejsu użytkownika
     var usernamePage = document.querySelector('#username-page');
     var chatPage = document.querySelector('#chat-page');
     var usernameForm = document.querySelector('#usernameForm');
@@ -69,117 +66,215 @@
     var messageArea = document.querySelector('#messageArea');
     var connectingElement = document.querySelector('.connecting');
 
+    // Zmienna przechowująca klienta Stomp
     var stompClient = null;
+
+    // Zmienna przechowująca nazwę użytkownika
     var username = null;
 
+    // Kolory do wyświetlania avatara użytkownika
     var colors = [
         '#2196F3', '#32c787', '#00BCD4', '#ff5652',
         '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
     ];
 
+    // Funkcja obsługująca próbę połączenia z serwerem WebSocket
     function connect(event) {
+        // Pobierz nazwę użytkownika z formularza
         username = document.querySelector('#name').value.trim();
 
-        if(username) {
+        if (username) {
+            // Ukryj stronę wyboru nazwy użytkownika, pokaż stronę czatu
             usernamePage.classList.add('hidden');
             chatPage.classList.remove('hidden');
 
+            // Utwórz klienta Stomp i połącz z serwerem
             var socket = new SockJS('/stomp-endpoint');
             stompClient = Stomp.over(socket);
-
             stompClient.connect({}, onConnected, onError);
         }
         event.preventDefault();
     }
 
-
+    // Funkcja obsługująca poprawne połączenie z serwerem
     function onConnected() {
+        // Zasubskrybuj kanał publiczny, aby odbierać wiadomości
         stompClient.subscribe('/topic/public', onMessageReceived);
 
+        // Wyślij wiadomość o dołączeniu użytkownika
         stompClient.send("/app/chat.addUser",
             {},
-            JSON.stringify({sender: username, type: 'JOIN'})
-        )
+            JSON.stringify({ sender: username, type: 'JOIN' })
+        );
 
+        // Ukryj informację o łączeniu
         connectingElement.classList.add('hidden');
     }
 
-
+    // Funkcja obsługująca błąd połączenia z serwerem
     function onError(error) {
-        connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
+        connectingElement.textContent = 'Nie można połączyć się z serwerem WebSocket. Odśwież stronę, aby spróbować ponownie!';
         connectingElement.style.color = 'red';
     }
 
-
+    // Funkcja wysyłająca wiadomość na serwer
     function sendMessage(event) {
+        // Pobierz treść wiadomości i ewentualny plik
         var messageContent = messageInput.value.trim();
-        if(messageContent && stompClient) {
-            var chatMessage = {
-                sender: username,
-                content: messageInput.value,
-                type: 'CHAT'
-            };
-            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
-            messageInput.value = '';
+        var fileInput = document.getElementById('fileInput');
+        var file = fileInput.files[0];
+
+        // Enumeracja reprezentująca typy wiadomości
+// Obsługa wiadomości tekstowych i obrazów
+        if (file) {
+            handleImageMessage(file);
+        } else if (messageContent && stompClient) {
+            handleTextMessage(messageContent);
         }
+
+        // Zapobiegnij domyślnej akcji formularza
         event.preventDefault();
     }
 
+    // Funkcja opisująca obsługę wiadomości obrazu
+    function handleImageMessage(file) {
+        // Utwórz obiekt FileReader do wczytania pliku
+        var reader = new FileReader();
+        reader.onloadend = function () {
+            // Konwertuj dane obrazu na format Base64
+            var imageData = reader.result.split(',')[1];
+
+            // Utwórz obiekt wiadomości i wyślij na serwer
+            var chatMessage = {
+                sender: username,
+                content: imageData,
+                type: 'IMAGE'
+            };
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+
+            // Wyczyść pola wejściowe
+            messageInput.value = '';
+            fileInput.value = '';
+        };
+        // Wczytaj dane pliku jako dane URL
+        reader.readAsDataURL(file);
+    }
+
+    // Funkcja opisująca obsługę wiadomości tekstowej
+    function handleTextMessage(messageContent) {
+        // Utwórz obiekt wiadomości tekstowej i wyślij na serwer
+        var chatMessage = {
+            sender: username,
+            content: messageContent,
+            type: 'CHAT'
+        };
+        stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+
+        // Wyczyść pole wejściowe
+        messageInput.value = '';
+    }
+
+    // Funkcja obsługująca opuszczenie czatu
     function leaveChat() {
+        // Wyślij wiadomość o opuszczeniu czatu na serwer
         if (stompClient) {
             stompClient.send("/app/chat.leave", {}, JSON.stringify({ sender: username, type: 'LEAVE' }));
             stompClient.disconnect();
         }
+
+        // Wyświetl stronę wyboru nazwy użytkownika, ukryj stronę czatu
         usernamePage.classList.remove('hidden');
         chatPage.classList.add('hidden');
 
+        // Wyświetl wiadomość o opuszczeniu czatu
         var leaveMessage = {
             sender: username,
-            content: 'You have left the chat.',
+            content: 'Opuściłeś czat.',
             type: 'LEAVE'
         };
         onMessageReceived({ body: JSON.stringify(leaveMessage) });
     }
 
-
+    // Funkcja obsługująca otrzymanie nowej wiadomości
     function onMessageReceived(payload) {
+        // Parsuj otrzymaną wiadomość
         var message = JSON.parse(payload.body);
-
         var messageElement = document.createElement('li');
 
-        if(message.type === 'JOIN') {
-            messageElement.classList.add('event-message');
-            message.content = message.sender + ' joined!';
+        // Obsługa różnych typów wiadomości
+        if (message.type === 'IMAGE') {
+            handleImageMessageDisplay(message, messageElement);
+        } else if (message.type === 'JOIN') {
+            handleJoinMessageDisplay(message, messageElement);
         } else if (message.type === 'LEAVE') {
-            messageElement.classList.add('event-message');
-            message.content = message.sender + ' left!';
+            handleLeaveMessageDisplay(message, messageElement);
         } else {
-            messageElement.classList.add('chat-message');
-
-            var avatarElement = document.createElement('i');
-            var avatarText = document.createTextNode(message.sender[0]);
-            avatarElement.appendChild(avatarText);
-            avatarElement.style['background-color'] = getAvatarColor(message.sender);
-
-            messageElement.appendChild(avatarElement);
-
-            var usernameElement = document.createElement('span');
-            var usernameText = document.createTextNode(message.sender);
-            usernameElement.appendChild(usernameText);
-            messageElement.appendChild(usernameElement);
+            handleTextMessageDisplay(message, messageElement);
         }
+
+        // Dodaj wiadomość do obszaru wiadomości i przewiń do ostatniej wiadomości
+        messageArea.appendChild(messageElement);
+        messageArea.scrollTop = messageArea.scrollHeight;
+    }
+
+    // Funkcja obsługująca wyświetlanie wiadomości obrazu
+    function handleImageMessageDisplay(message, messageElement) {
+        messageElement.classList.add('chat-message');
+
+        var avatarElement = document.createElement('i');
+        var avatarText = document.createTextNode(message.sender[0]);
+        avatarElement.appendChild(avatarText);
+        avatarElement.style['background-color'] = getAvatarColor(message.sender);
+
+        messageElement.appendChild(avatarElement);
+
+        var imgElement = document.createElement('img');
+        imgElement.src = 'data:' + message.contentType + ';base64,' + message.content;
+        imgElement.alt = 'Image';
+        messageElement.appendChild(imgElement);
+    }
+
+    // Funkcja obsługująca wyświetlanie wiadomości dołączenia
+    function handleJoinMessageDisplay(message, messageElement) {
+        messageElement.classList.add('event-message');
+        var eventText = document.createTextNode(message.content);
+        messageElement.appendChild(eventText);
+    }
+
+    // Funkcja obsługująca wyświetlanie wiadomości opuszczenia
+    function handleLeaveMessageDisplay(message, messageElement) {
+        messageElement.classList.add('event-message');
+
+        if (message.content !== null) {
+            var eventText = document.createTextNode(message.content);
+            messageElement.appendChild(eventText);
+        }
+    }
+
+    // Funkcja obsługująca wyświetlanie wiadomości tekstowej
+    function handleTextMessageDisplay(message, messageElement) {
+        messageElement.classList.add('chat-message');
+
+        var avatarElement = document.createElement('i');
+        var avatarText = document.createTextNode(message.sender[0]);
+        avatarElement.appendChild(avatarText);
+        avatarElement.style['background-color'] = getAvatarColor(message.sender);
+
+        messageElement.appendChild(avatarElement);
+
+        var usernameElement = document.createElement('span');
+        var usernameText = document.createTextNode(message.sender);
+        usernameElement.appendChild(usernameText);
+        messageElement.appendChild(usernameElement);
 
         var textElement = document.createElement('p');
         var messageText = document.createTextNode(message.content);
         textElement.appendChild(messageText);
 
         messageElement.appendChild(textElement);
-
-        messageArea.appendChild(messageElement);
-        messageArea.scrollTop = messageArea.scrollHeight;
     }
 
-
+    // Funkcja generująca kolor avatara użytkownika na podstawie nazwy
     function getAvatarColor(messageSender) {
         var hash = 0;
         for (var i = 0; i < messageSender.length; i++) {
@@ -189,12 +284,20 @@
         return colors[index];
     }
 
-    usernameForm.addEventListener('submit', connect, true)
-    messageForm.addEventListener('submit', sendMessage, true)
+    // Nasłuchuj zdarzenia wysłania formularza z nazwą użytkownika
+    usernameForm.addEventListener('submit', connect, true);
+
+    // Nasłuchuj zdarzenia wysłania formularza z wiadomością
+    messageForm.addEventListener('submit', sendMessage, true);
+
 </script>
 
+<!-- Skrypty do obsługi WebSocket -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-
 </body>
 </html>
+
+
+
+

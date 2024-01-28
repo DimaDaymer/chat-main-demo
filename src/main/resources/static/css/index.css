@@ -1,10 +1,10 @@
-
-
+/* Resetowanie stylów dla HTML i body */
 html,body {
     height: 100%;
     overflow: hidden;
 }
 
+/* Stylowanie body */
 body {
     margin: 0;
     padding: 0;
@@ -17,16 +17,19 @@ body {
     height: 100%;
 }
 
+/* Klasa do czyszczenia elementów */
 .clearfix:after {
     display: block;
     content: "";
     clear: both;
 }
 
+/* Klasa ukrywająca element */
 .hidden {
     display: none;
 }
 
+/* Stylowanie formularzy */
 .form-control {
     width: 100%;
     min-height: 38px;
@@ -34,15 +37,18 @@ body {
     border: 1px solid #c8c8c8;
 }
 
+/* Stylowanie grupy formularzy */
 .form-group {
     margin-bottom: 15px;
 }
 
+/* Stylowanie inputów */
 input {
     padding-left: 10px;
     outline: none;
 }
 
+/* Stylowanie przycisków */
 button {
     box-shadow: none;
     border: 1px solid transparent;
@@ -58,28 +64,33 @@ button {
     min-height: 38px;
 }
 
+/* Stylowanie domyślnego przycisku */
 button.default {
     background-color: #e8e8e8;
     color: #333;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.12);
 }
 
+/* Stylowanie przycisku głównego */
 button.primary {
     background-color: #6db33f;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.12);
     color: #fff;
 }
 
+/* Stylowanie dodatkowego przycisku */
 button.accent {
     background-color: #6db33f;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.12);
     color: #fff;
 }
 
+/* Stylowanie strony wyboru nazwy użytkownika */
 #username-page {
     text-align: center;
 }
 
+/* Stylowanie kontenera strony wyboru nazwy użytkownika */
 .username-page-container {
     background: #fff;
     box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
@@ -100,28 +111,31 @@ button.accent {
     margin-top: -160px;
 }
 
+/* Stylowanie przycisku submit na stronie wyboru nazwy użytkownika */
 .username-page-container .username-submit {
     margin-top: 10px;
 }
 
-
+/* Stylowanie strony czatu */
 #chat-page {
     position: relative;
     height: 100%;
 }
 
+/* Stylowanie kontenera czatu */
 .chat-container {
-    max-width: 700px;
+    max-width: 900px;
     margin-left: auto;
     margin-right: auto;
     background-color: #fff;
     box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
     margin-top: 30px;
     height: calc(100% - 60px);
-    max-height: 600px;
+    max-height: 800px;
     position: relative;
 }
 
+/* Stylowanie listy wiadomości */
 #chat-page ul {
     list-style-type: none;
     background-color: #FFF;
@@ -136,6 +150,7 @@ button.accent {
     padding: 20px;
 }
 
+/* Stylowanie elementów listy wiadomości */
 #chat-page ul li {
     line-height: 1.5rem;
     padding: 10px 20px;
@@ -149,23 +164,28 @@ button.accent {
     margin: 0;
 }
 
+/* Stylowanie akcji czatu (JOIN, LEAVE) */
 #chat-page .event-message {
     width: 100%;
     text-align: center;
     clear: both;
 }
 
+
+/* Stylowanie tekstu w akcjach czatu */
 #chat-page .event-message p {
     color: #777;
     font-size: 14px;
     word-wrap: break-word;
 }
 
+/* Stylowanie wiadomości czatu */
 #chat-page .chat-message {
     padding-left: 68px;
     position: relative;
 }
 
+/* Stylowanie avatara w wiadomościach czatu */
 #chat-page .chat-message i {
     position: absolute;
     width: 42px;
@@ -183,22 +203,26 @@ button.accent {
     text-transform: uppercase;
 }
 
+/* Stylowanie nazwy użytkownika w wiadomościach czatu */
 #chat-page .chat-message span {
     color: #333;
     font-weight: 600;
 }
 
+/* Stylowanie treści wiadomości w czacie */
 #chat-page .chat-message p {
     color: #43464b;
 }
 
+/* Stylowanie pola wejściowego na wiadomość */
 #messageForm .input-group {
     display: flex;
 }
 
+/* Stylowanie obrazów w wiadomościach */
 #chat-page .chat-message img {
     max-width: 100%;
-    max-height: 300px; /* Adjust as needed */
+    max-height: 300px;
     margin-top: 10px;
 }
 
@@ -233,6 +257,7 @@ button.accent {
     width: 100%;
 }
 
+/* Media query dla małych ekranów */
 @media screen and (max-width: 730px) {
 
     .chat-container {
@@ -242,6 +267,7 @@ button.accent {
     }
 }
 
+/* Media query dla bardzo małych ekranów */
 @media screen and (max-width: 480px) {
     .chat-container {
         height: calc(100% - 30px);
